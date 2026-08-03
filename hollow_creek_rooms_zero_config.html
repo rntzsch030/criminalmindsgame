@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070a0d" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Hollow Creek — Case HC-1147</title>
+  <style>
+    :root{
+      --bg:#070a0d;--panel:#11161b;--panel2:#171d23;--paper:#e8dec7;--ink:#161616;
+      --text:#e9eef2;--muted:#8e9aa4;--blue:#7896b0;--red:#7d2228;--red2:#b43e46;
+      --amber:#c99c54;--green:#6f9c7e;--border:#2b343d;--shadow:rgba(0,0,0,.5)
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;min-height:100vh;color:var(--text);font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+      background:
+        linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.01) 1px,transparent 1px),var(--bg);
+      background-size:4px 4px,4px 4px,auto
+    }
+    body:after{
+      content:"";position:fixed;inset:0;pointer-events:none;
+      background:repeating-linear-gradient(to bottom,transparent 0,transparent 3px,rgba(255,255,255,.018) 4px);
+      opacity:.22
+    }
+    button,input,select{font:inherit}
+    .app{width:min(1600px,100%);margin:auto;padding:18px}
+    .topbar{
+      display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+      padding:14px 16px;border:1px solid var(--border);background:rgba(12,16,20,.94);
+      position:sticky;top:0;z-index:20;backdrop-filter:blur(10px);box-shadow:0 12px 32px var(--shadow)
+    }
+    h1,h2,h3,h4{font-family:Impact,"Arial Narrow",sans-serif;letter-spacing:.08em;text-transform:uppercase}
+    .title h1{margin:0;font-size:clamp(28px,4vw,48px);letter-spacing:.14em}
+    .sub{font-size:11px;color:var(--muted);letter-spacing:.12em}
+    .status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+    .badge{border:1px solid var(--border);background:var(--panel2);padding:8px 10px;font-size:11px;text-transform:uppercase}
+    .timer{font-size:22px;min-width:100px;text-align:center;color:var(--paper)}
+    .btn{
+      border:1px solid #3d4852;background:#171d23;color:var(--text);padding:10px 13px;cursor:pointer;
+      text-transform:uppercase;letter-spacing:.06em;transition:.18s
+    }
+    .btn:hover:not(:disabled){transform:translateY(-1px);background:#232c34}
+    .btn:disabled{opacity:.35;cursor:not-allowed}
+    .btn.primary{background:#263a4c;border-color:#56748d}
+    .btn.red{background:#4b181c;border-color:#833139}
+    .btn.amber{background:#4e3a20;border-color:#82633a}
+    .btn.green{background:#263d31;border-color:#52745f}
+    .screen{display:none;margin-top:16px}.screen.active{display:block}
+    .landing{min-height:76vh;display:none;place-items:center}.landing.active{display:grid}
+    .folder{
+      width:min(980px,100%);background:var(--paper);color:var(--ink);padding:30px;position:relative;
+      box-shadow:0 28px 70px rgba(0,0,0,.58);transform:rotate(-.2deg)
+    }
+    .folder:before{
+      content:"BAU / ACTIVE CASE";position:absolute;top:-28px;left:18px;background:#ccb995;padding:8px 18px;
+      font-weight:800;letter-spacing:.09em
+    }
+    .stamp{display:inline-block;border:4px solid var(--red);color:var(--red);padding:7px 11px;font-weight:900;transform:rotate(-4deg);letter-spacing:.12em;text-transform:uppercase}
+    .folder h2{font-size:clamp(40px,7vw,76px);margin:12px 0 8px}.folder p{line-height:1.65}
+    .mode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}
+    .mode-card{
+      border:1px solid #978a72;background:#f2e8d1;padding:18px;min-height:270px;display:flex;flex-direction:column
+    }
+    .mode-card h3{margin:0 0 8px;font-size:25px}.mode-card p{font-size:13px;line-height:1.55;flex:1}
+    .mode-card ul{padding-left:18px;font-size:12px;line-height:1.55}
+    .panel{border:1px solid var(--border);background:rgba(15,20,25,.95);box-shadow:0 15px 36px var(--shadow)}
+    .panel-header{padding:12px 14px;background:#171e24;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+    .panel-body{padding:14px}
+    .setup{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .setup-card{background:var(--paper);color:var(--ink);padding:22px;min-height:340px}
+    .setup-card h3{margin-top:0}.field{margin:14px 0}.field label{display:block;font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:6px}
+    .field input,.field select{width:100%;padding:11px;background:#f5ecd8;border:1px solid #8c8069;color:#111}
+    .room-code{font-size:42px;letter-spacing:.18em;font-weight:900;text-align:center;padding:18px;border:2px dashed #766b59;background:#efe3c8;margin:12px 0}
+    .player-list{display:grid;gap:8px;margin:14px 0}.player-row{display:flex;justify-content:space-between;padding:9px 10px;background:#e1d4b9}
+    .board{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(330px,.85fr);gap:16px}
+    .maincol,.sidecol{display:grid;gap:16px;align-content:start}
+    .brief{background:var(--paper);color:var(--ink);padding:20px;line-height:1.55}
+    .rolebox{border-left:4px solid var(--blue);padding-left:14px;margin-top:14px}.rolebox.killer{border-color:var(--red2)}
+    .objective{margin-top:10px;padding:10px;border:1px solid #948771;background:#f2e8d2;font-size:12px}
+    .grid{display:grid;gap:12px}.evidence-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .evidence{
+      background:var(--paper);color:var(--ink);padding:14px;min-height:158px;position:relative;box-shadow:0 8px 20px rgba(0,0,0,.35);
+      transform:rotate(var(--tilt))
+    }
+    .evidence:before{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:#8b1d24;top:8px;left:50%;box-shadow:0 2px 4px rgba(0,0,0,.5)}
+    .evidence h4{margin:18px 0 7px;font-family:inherit;font-size:14px}.tag{font-size:10px;color:#514c44;text-transform:uppercase;letter-spacing:.08em}
+    .result{border-top:1px dashed #746d61;margin-top:10px;padding-top:10px;font-weight:700}
+    .suspect-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .suspect{border:1px solid var(--border);background:#141a1f;padding:13px}.suspect.eliminated{opacity:.42;filter:grayscale(1)}
+    .suspect h4{font-family:inherit;margin:0 0 5px}.meta{font-size:11px;color:var(--muted);line-height:1.45}
+    .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.pill{font-size:10px;border:1px solid var(--border);padding:4px 6px}.match{color:#9bd0a8}.contra{color:#ff9095}.unknown{color:#dbc184}
+    .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.small{padding:7px 9px;font-size:10px}
+    .profile{display:grid;gap:7px}.profile-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed #35404a;padding:7px 0}
+    .role-actions{display:grid;gap:9px}.note{font-size:11px;color:var(--muted);line-height:1.5}
+    .log{display:grid;gap:8px;max-height:320px;overflow:auto;font-size:11px}.log-entry{padding:8px 10px;background:#10161b;border-left:2px solid #3f4c57;line-height:1.45}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+    .modal.active{display:flex}.modal-card{width:min(650px,100%);background:var(--paper);color:var(--ink);padding:24px;box-shadow:0 25px 80px rgba(0,0,0,.65)}
+    .modal-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:20px}.modal .btn{color:var(--text)}
+    .duel-status{display:grid;grid-template-columns:1fr 1fr;gap:10px}.duel-side{padding:12px;border:1px solid var(--border);background:#11171c}.duel-side strong{display:block;margin-bottom:5px}
+    .result-banner{padding:36px;text-align:center;border:2px solid var(--border);background:#11171c}.result-banner h2{font-size:50px;margin:0 0 10px}
+    @media(max-width:1000px){.topbar{grid-template-columns:1fr}.status{justify-content:flex-start}.board{grid-template-columns:1fr}.mode-grid{grid-template-columns:1fr}.setup{grid-template-columns:1fr}}
+    @media(max-width:720px){.evidence-grid,.suspect-grid{grid-template-columns:1fr}.app{padding:10px}.folder{padding:22px}}
+  
+    /* Mobile-first stability and touch improvements */
+    html {
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      width: 100%;
+      min-width: 0;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;
+    }
+
+    img, svg, video, canvas {
+      max-width: 100%;
+      height: auto;
+    }
+
+    input, select, textarea, button {
+      max-width: 100%;
+      min-width: 0;
+    }
+
+    button, .btn {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .panel, .panel-body, .panel-header,
+    .brief, .setup-card, .folder, .mode-card,
+    .evidence, .suspect, .modal-card {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 820px) {
+      .app {
+        width: 100%;
+        padding:
+          max(8px, env(safe-area-inset-top))
+          max(8px, env(safe-area-inset-right))
+          max(14px, env(safe-area-inset-bottom))
+          max(8px, env(safe-area-inset-left));
+      }
+
+      .topbar {
+        position: relative;
+        top: auto;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+        padding: 12px;
+      }
+
+      .title h1 {
+        font-size: clamp(27px, 10vw, 42px);
+        line-height: .95;
+        word-break: break-word;
+      }
+
+      .sub {
+        margin-top: 5px;
+        font-size: 9px;
+        line-height: 1.45;
+      }
+
+      .status {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .status:last-child {
+        grid-template-columns: minmax(0, 1fr) minmax(110px, .8fr);
+      }
+
+      .badge {
+        min-width: 0;
+        padding: 9px 8px;
+        font-size: 9px;
+        line-height: 1.35;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+
+      .timer {
+        min-width: 0;
+        font-size: 18px;
+      }
+
+      .status .btn {
+        width: 100%;
+      }
+
+      .screen {
+        margin-top: 10px;
+      }
+
+      .landing {
+        min-height: auto;
+        padding-top: 18px;
+        place-items: stretch;
+      }
+
+      .folder {
+        width: 100%;
+        padding: 22px 16px 18px;
+        transform: none;
+      }
+
+      .folder::before {
+        top: -23px;
+        left: 10px;
+        max-width: calc(100% - 20px);
+        padding: 7px 11px;
+        font-size: 9px;
+        white-space: normal;
+      }
+
+      .stamp {
+        max-width: 100%;
+        border-width: 3px;
+        padding: 6px 8px;
+        font-size: 11px;
+      }
+
+      .folder h2 {
+        font-size: clamp(36px, 15vw, 60px);
+        line-height: .95;
+      }
+
+      .folder p {
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .mode-grid, .setup, .board {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .mode-grid {
+        margin-top: 18px;
+      }
+
+      .mode-card {
+        min-height: 0;
+        padding: 16px;
+      }
+
+      .mode-card h3 {
+        font-size: 23px;
+      }
+
+      .mode-card p, .mode-card ul {
+        font-size: 12px;
+      }
+
+      .mode-card .btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .setup-card {
+        min-height: 0;
+        padding: 17px 14px;
+      }
+
+      .field {
+        margin: 12px 0;
+      }
+
+      .field input, .field select,
+      .modal-card input, .modal-card select {
+        min-height: 48px;
+        padding: 11px 12px;
+        font-size: 16px;
+      }
+
+      .setup-card > .btn {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 8px;
+      }
+
+      .room-code {
+        width: 100%;
+        margin: 10px 0;
+        padding: 15px 8px;
+        font-size: clamp(28px, 12vw, 42px);
+        letter-spacing: .11em;
+        overflow-wrap: normal;
+        word-break: keep-all;
+      }
+
+      .player-row {
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+      }
+
+      .player-row span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .panel-header {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 11px 12px;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .panel-body {
+        padding: 10px;
+      }
+
+      .brief {
+        padding: 15px 13px;
+        font-size: 13px;
+      }
+
+      .brief h3 {
+        font-size: 24px;
+        margin-top: 0;
+      }
+
+      .rolebox {
+        padding-left: 11px;
+      }
+
+      .objective {
+        font-size: 11px;
+      }
+
+      .duel-status {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .evidence-grid, .suspect-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .evidence {
+        min-height: 0;
+        padding: 14px 13px;
+        transform: none !important;
+      }
+
+      .evidence::before {
+        width: 10px;
+        height: 10px;
+      }
+
+      .evidence h4 {
+        font-size: 13px;
+      }
+
+      .evidence, .suspect {
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 7px;
+      }
+
+      .actions .btn,
+      .role-actions .btn {
+        width: 100%;
+        min-height: 46px;
+        white-space: normal;
+      }
+
+      .small {
+        min-height: 42px !important;
+        padding: 9px 10px;
+        font-size: 11px;
+      }
+
+      .pills {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .pill {
+        text-align: center;
+        padding: 6px 4px;
+        overflow-wrap: anywhere;
+      }
+
+      .profile-row {
+        align-items: flex-start;
+        font-size: 11px;
+      }
+
+      .profile-row strong {
+        text-align: right;
+      }
+
+      .log {
+        max-height: 240px;
+      }
+
+      .modal {
+        align-items: flex-end;
+        padding:
+          10px
+          max(8px, env(safe-area-inset-right))
+          max(8px, env(safe-area-inset-bottom))
+          max(8px, env(safe-area-inset-left));
+      }
+
+      .modal-card {
+        width: 100%;
+        max-height: min(88vh, 760px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 18px 14px;
+        border-radius: 14px 14px 0 0;
+      }
+
+      .modal-card h3 {
+        font-size: 24px;
+        margin-top: 0;
+      }
+
+      .modal-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        position: sticky;
+        bottom: -18px;
+        background: var(--paper);
+        padding: 12px 0 4px;
+      }
+
+      .modal-actions .btn {
+        width: 100%;
+        min-height: 48px;
+      }
+
+      .result-banner {
+        padding: 28px 14px;
+      }
+
+      .result-banner h2 {
+        font-size: clamp(36px, 13vw, 50px);
+        line-height: 1;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .status,
+      .status:last-child {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .pills {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .title h1 {
+        font-size: 31px;
+      }
+
+      .room-code {
+        font-size: 29px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 520px) {
+      .topbar {
+        position: relative;
+      }
+
+      .landing {
+        padding-top: 12px;
+      }
+
+      .modal-card {
+        max-height: 94vh;
+      }
+    }
+
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="title"><h1>Hollow Creek</h1><div class="sub">CASE HC-1147 · BEHAVIOURAL ANALYSIS UNIT</div></div>
+    <div class="status"><div class="badge" id="modeBadge">Select mode</div><div class="badge" id="phaseBadge">Awaiting case</div></div>
+    <div class="status"><div class="badge timer" id="timer">15:00</div><button class="btn red" onclick="location.reload()">Reset</button></div>
+  </header>
+
+  <main>
+    <section id="landing" class="screen landing active">
+      <div class="folder">
+        <div class="stamp">Classified</div>
+        <h2>Case HC-1147</h2>
+        <p>Three bodies in eleven days along the Hollow Creek strip. Same M.O., same stretch of Route 9. The offender knows the motel, the shift changes, and exactly when no one is watching.</p>
+        <div class="mode-grid">
+          <article class="mode-card">
+            <h3>Solo</h3>
+            <p>Play as the Profiler or the Serial Killer against an AI-controlled opponent.</p>
+            <ul><li>1 player</li><li>Profiler or killer perspective</li><li>Full investigation board</li></ul>
+            <button class="btn primary" onclick="openSetup('solo')">Select solo</button>
+          </article>
+          <article class="mode-card">
+            <h3>Duel</h3>
+            <p>A dedicated asymmetric 2-player mode. One player controls the BAU, the other controls the killer.</p>
+            <ul><li>Exactly 2 players</li><li>Shared-device prototype</li><li>Alternating secret turns</li></ul>
+            <button class="btn amber" onclick="openSetup('duel')">Select duel</button>
+          </article>
+          <article class="mode-card">
+            <h3>Party</h3>
+            <p>Social deduction for 3–12 players. One player is secretly sabotaging the investigation.</p>
+            <ul><li>Create or join a room</li><li>Specialist investigation roles</li><li>Hidden infiltrator</li></ul>
+            <button class="btn red" onclick="openSetup('party')">Select party</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="setupScreen" class="screen">
+      <div class="setup">
+        <div class="setup-card">
+          <h3 id="setupTitle">Game setup</h3>
+          <div id="setupFields"></div>
+          <button class="btn primary" id="setupContinue">Continue</button>
+          <button class="btn" onclick="backToModes()">Back</button>
+        </div>
+        <div class="setup-card">
+          <h3>Case rules</h3>
+          <div id="modeExplanation"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="lobbyScreen" class="screen">
+      <div class="setup">
+        <div class="setup-card">
+          <h3>Room lobby</h3>
+          <div class="room-code" id="roomCode">HC114</div>
+          <div class="player-list" id="playerList"></div>
+          <button class="btn primary" id="startRoomBtn">Start investigation</button>
+          <button class="btn" onclick="backToModes()">Cancel</button>
+        </div>
+        <div class="setup-card">
+          <h3>Role distribution</h3>
+          <div id="roleDistribution"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen">
+      <div class="board">
+        <div class="maincol">
+          <section class="panel">
+            <div class="panel-header"><span>Case briefing</span><span id="gameRoom">LOCAL CASE</span></div>
+            <div class="panel-body">
+              <div class="brief">
+                <h3>Active investigation</h3>
+                <p id="briefText"></p>
+                <div class="rolebox" id="roleBox"><strong id="roleName"></strong><div id="roleDescription"></div><div class="objective" id="objective"></div></div>
+                <div id="duelStatus" class="duel-status" style="margin-top:14px;display:none"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><span>Evidence board</span><span><span id="processed">0</span>/6 processed</span></div>
+            <div class="panel-body"><div id="evidenceGrid" class="grid evidence-grid"></div></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header"><span>Suspect roster</span><span>One offender in the pool</span></div>
+            <div class="panel-body"><div id="suspectGrid" class="grid suspect-grid"></div></div>
+          </section>
+        </div>
+
+        <aside class="sidecol">
+          <section class="panel"><div class="panel-header"><span>Behavioural profile</span></div><div class="panel-body"><div id="profileList" class="profile"></div></div></section>
+          <section class="panel"><div class="panel-header"><span>Current actions</span></div><div class="panel-body"><div id="roleActions" class="role-actions"></div></div></section>
+          <section class="panel"><div class="panel-header"><span>Field log</span></div><div class="panel-body"><div id="fieldLog" class="log"></div></div></section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen">
+      <div class="result-banner"><h2 id="resultTitle"></h2><p id="resultText"></p><button class="btn primary" onclick="location.reload()">Open another case</button></div>
+    </section>
+  </main>
+</div>
+
+<div id="modal" class="modal">
+  <div class="modal-card"><h3 id="modalTitle"></h3><div id="modalBody"></div><div id="modalActions" class="modal-actions"></div></div>
+</div>
+
+<script>
+const traits=[
+  {key:"shoe",label:"Shoe size",values:["Small","Medium","Large"]},
+  {key:"gait",label:"Gait",values:["Even stride","Noticeable limp"]},
+  {key:"rope",label:"Rope skill",values:["None","Marine-trained"]},
+  {key:"travel",label:"Movement",values:["Pickup","Sedan","On foot"]},
+  {key:"build",label:"Build",values:["Average","Strong"]},
+  {key:"hand",label:"Dominant hand",values:["Left-handed","Right-handed"]}
+];
+const evidenceTemplates=[
+  {name:"Boot Print",trait:"shoe",description:"Partial tread impression recovered behind Room 12."},
+  {name:"Gait Analysis",trait:"gait",description:"Security footage shows the offender crossing the rear lot."},
+  {name:"Ligature Fibre",trait:"rope",description:"Twisted marine-grade fibre recovered at the scene."},
+  {name:"Tire Cast",trait:"travel",description:"Track pattern preserved near the service road."},
+  {name:"Wound Depth Report",trait:"build",description:"Force analysis indicates likely physique."},
+  {name:"Spatter Angle",trait:"hand",description:"Impact pattern suggests dominant hand."}
+];
+const names=["Marcus Vale","Elena Voss","Caleb Ward","Naomi Pike","Jonah Reed","Tessa Crane"];
+const occupations=["Night manager","Long-haul driver","Paramedic","Marina mechanic","Security contractor","Motel cleaner"];
+const roles={
+  profiler:{name:"Profiler",desc:"Lead the behavioural analysis and make the final accusation.",goal:"Identify the correct suspect before the trail goes cold."},
+  forensic:{name:"Forensic Technician",desc:"Control evidence processing and inspect questionable results.",goal:"Use your re-test to expose possible contamination."},
+  detective:{name:"Detective",desc:"Interrogate suspects and reveal concealed information.",goal:"Unlock critical details before the final vote."},
+  pathologist:{name:"Medical Examiner",desc:"Extract medical findings that the scene cannot provide.",goal:"Use one specialist examination strategically."},
+  lawyer:{name:"Legal Counsel",desc:"Challenge unsupported removals and formal accusations.",goal:"Prevent the team from destroying the case with weak evidence."},
+  analyst:{name:"Intelligence Analyst",desc:"Cross-reference patterns, alibis, and contradictions.",goal:"Identify the strongest remaining case theory."},
+  killer:{name:"Serial Killer",desc:"Manipulate the case while protecting your cover identity.",goal:"Secure a wrong accusation, claim enough victims, or survive the timer."}
+};
+
+const $=id=>document.getElementById(id);
+let state={
+  mode:null,playerCount:1,role:null,turn:"bau",killerIndex:0,suspects:[],evidence:[],profile:{},
+  time:900,timerId:null,processed:0,victims:0,falseLeadUsed:false,retestUsed:false,
+  autopsyUsed:false,legalPrepared:false,analystUsed:false,gameOver:false,roomCode:"",peer:null,connections:[],isHost:false,playerId:"",playerName:"Player",networkPlayers:[],networkReady:false
+};
+
+function randomItem(a){return a[Math.floor(Math.random()*a.length)]}
+function randomCode(){const chars="ABCDEFGHJKLMNPQRSTUVWXYZ";let s="HC";for(let i=0;i<3;i++)s+=randomItem(chars);return s}
+function show(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));$(id).classList.add("active")}
+function openSetup(mode){
+  state.mode=mode;show("setupScreen");$("modeBadge").textContent=mode.toUpperCase();
+  const title={solo:"Solo case",duel:"Two-player duel",party:"Party room"}[mode];
+  $("setupTitle").textContent=title;
+  if(mode==="solo"){
+    $("setupFields").innerHTML=`
+      <div class="field"><label>Play as</label><select id="soloRole"><option value="profiler">Profiler</option><option value="killer">Serial Killer</option></select></div>
+      <div class="field"><label>Investigation window</label><select id="timeChoice"><option value="900">15 minutes</option><option value="1200">20 minutes</option><option value="600">10 minutes</option></select></div>`;
+    $("modeExplanation").innerHTML="<p>You play against an AI-controlled opponent. As Profiler, process evidence and accuse. As Killer, manipulate evidence and claim victims before the AI closes in.</p>";
+    $("setupContinue").onclick=()=>{state.playerCount=1;state.role=$("soloRole").value;state.time=Number($("timeChoice").value);startGame()};
+  }else if(mode==="duel"){
+    $("setupFields").innerHTML=`
+      <div class="field"><label>Action</label><select id="duelAction"><option value="create">Create room</option><option value="join">Join room</option></select></div>
+      <div class="field"><label>Your display name</label><input id="duelName" value="Player"></div>
+      <div class="field"><label>Room code when joining</label><input id="duelJoinCode" placeholder="HCXYZ" maxlength="5"></div>
+      <div class="field"><label>Investigation window</label><select id="timeChoice"><option value="900">15 minutes</option><option value="1200">20 minutes</option></select></div>`;
+    $("modeExplanation").innerHTML="<p>Dedicated asymmetric play for exactly two people on separate devices. One player creates a room; the other enters the room code from the same HTML file.</p>";
+    $("setupContinue").onclick=()=>openNetworkLobby("duel");
+  }else{
+    $("setupFields").innerHTML=`
+      <div class="field"><label>Action</label><select id="partyAction"><option value="create">Create room</option><option value="join">Join room</option></select></div>
+      <div class="field"><label>Players</label><select id="partyCount">${Array.from({length:10},(_,i)=>`<option value="${i+3}">${i+3} players</option>`).join("")}</select></div>
+      <div class="field"><label>Your display name</label><input id="displayName" value="Player 1"></div>
+      <div class="field"><label>Room code when joining</label><input id="joinCode" placeholder="HCXYZ" maxlength="5"></div>`;
+    $("modeExplanation").innerHTML="<p>Party Mode supports 3–12 players across separate devices. The host creates a room code and other players join it from the same HTML file. All devices must remain online.</p>";
+    $("setupContinue").onclick=()=>openNetworkLobby("party");
+  }
+}
+function backToModes(){state={...state,mode:null};$("modeBadge").textContent="Select mode";show("landing")}
+
+
+let net = {
+  room:null,
+  hello:null,
+  lobby:null,
+  start:null,
+  sync:null,
+  log:null,
+  finish:null,
+  ready:false,
+  strategy:""
+};
+
+async function loadTrystero(){
+  const candidates=[
+    ["Nostr","https://esm.sh/trystero@0.25.3/nostr"],
+    ["MQTT","https://esm.sh/trystero@0.25.3/mqtt"]
+  ];
+  let lastError=null;
+  for(const [name,url] of candidates){
+    try{
+      const mod=await import(url);
+      if(typeof mod.joinRoom==="function"){
+        net.strategy=name;
+        return mod.joinRoom;
+      }
+    }catch(error){lastError=error}
+  }
+  throw lastError||new Error("Could not load the multiplayer library.");
+}
+
+function showNetworkError(message){
+  modal(
+    "Room connection problem",
+    `<p>${message}</p>
+     <p>Both devices must open the game from an HTTPS website and remain online. Private browsing, strict tracking protection, VPNs, or corporate firewalls may block WebRTC.</p>`,
+    [{label:"Close"}]
+  );
+}
+
+function sendAction(action,payload,targetPeerId){
+  if(!action)return;
+  try{
+    if(targetPeerId)action.send(payload,targetPeerId);
+    else action.send(payload);
+  }catch(error){
+    console.error("Room send failed",error);
+  }
+}
+
+function configureRoomActions(){
+  net.hello=net.room.makeAction("hello");
+  net.lobby=net.room.makeAction("lobby");
+  net.start=net.room.makeAction("start");
+  net.sync=net.room.makeAction("sync");
+  net.log=net.room.makeAction("log");
+  net.finish=net.room.makeAction("finish");
+
+  net.hello.onMessage=(message,{peerId})=>{
+    if(!state.isHost||!message)return;
+    const existing=state.networkPlayers.find(p=>p.playerId===message.playerId);
+    if(!existing){
+      state.networkPlayers.push({
+        name:message.name||"Player",
+        playerId:message.playerId,
+        peerId
+      });
+    }else{
+      existing.peerId=peerId;
+      existing.name=message.name||existing.name;
+    }
+    renderNetworkLobby();
+    broadcastLobby();
+  };
+
+  net.lobby.onMessage=message=>{
+    if(state.isHost||!message)return;
+    state.networkPlayers=message.players||[];
+    state.playerCount=message.playerCount||state.playerCount;
+    renderNetworkLobby();
+  };
+
+  net.start.onMessage=message=>{
+    if(!message)return;
+    importSharedState(message.gameState);
+    state.role=message.roles?.[state.playerId]||"profiler";
+    startNetworkGame();
+  };
+
+  net.sync.onMessage=message=>{
+    if(!message)return;
+    if(state.isHost&&message.fromGuest){
+      importSharedState(message.gameState||message);
+      renderAll();
+      sendAction(net.sync,{gameState:exportSharedState()});
+      return;
+    }
+    if(!state.isHost){
+      importSharedState(message.gameState||message);
+      renderAll();
+    }
+  };
+
+  net.log.onMessage=message=>{
+    if(message?.message)log(message.message,false);
+  };
+
+  net.finish.onMessage=message=>{
+    if(message)endGame(message.title,message.text,false);
+  };
+
+  net.room.onPeerJoin=peerId=>{
+    if(!state.isHost){
+      sendAction(net.hello,{
+        name:state.playerName,
+        playerId:state.playerId,
+        mode:state.mode
+      },peerId);
+    }
+  };
+
+  net.room.onPeerLeave=peerId=>{
+    if(!state.isHost)return;
+    state.networkPlayers=state.networkPlayers.filter(p=>p.peerId!==peerId||p.playerId===state.playerId);
+    renderNetworkLobby();
+    broadcastLobby();
+  };
+}
+
+function broadcastLobby(){
+  if(!state.isHost)return;
+  sendAction(net.lobby,{
+    players:state.networkPlayers,
+    playerCount:state.playerCount,
+    mode:state.mode,
+    roomCode:state.roomCode
+  });
+}
+
+function renderNetworkLobby(){
+  $("roomCode").textContent=state.roomCode||"-----";
+  $("playerList").innerHTML=state.networkPlayers.map((p,i)=>`
+    <div class="player-row">
+      <span>${p.name}</span>
+      <strong>${p.playerId===state.playerId?"YOU":i===0?"HOST":"CONNECTED"}</strong>
+    </div>`).join("");
+
+  const required=state.mode==="duel"?2:state.playerCount;
+  $("startRoomBtn").disabled=!state.isHost||state.networkPlayers.length<required;
+  $("startRoomBtn").textContent=state.isHost
+    ?`Start investigation (${state.networkPlayers.length}/${required})`
+    :`Waiting for host · ${state.networkPlayers.length}/${required}`;
+
+  const info=document.getElementById("networkStatus");
+  if(info)info.textContent=`Connected through ${net.strategy||"WebRTC"} · ${state.networkPlayers.length} player(s)`;
+}
+
+async function openNetworkLobby(mode){
+  state.mode=mode;
+  state.playerName=(mode==="duel"?$("duelName").value:$("displayName").value).trim()||"Player";
+  state.playerId=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2));
+  const action=mode==="duel"?$("duelAction").value:$("partyAction").value;
+  state.playerCount=mode==="duel"?2:Number($("partyCount").value);
+  state.time=Number($("timeChoice")?.value||900);
+  state.isHost=action==="create";
+  state.roomCode=state.isHost
+    ?randomCode()
+    :(mode==="duel"?$("duelJoinCode").value:$("joinCode").value).trim().toUpperCase();
+
+  if(!/^[A-Z0-9]{5}$/.test(state.roomCode)){
+    showNetworkError("Enter a valid five-character room code.");
+    return;
+  }
+
+  show("lobbyScreen");
+  $("roleDistribution").innerHTML=(mode==="duel"
+    ?"<p>The host plays the BAU Profiler. The joining player becomes the Serial Killer.</p>"
+    :roleDistributionText(state.playerCount))
+    +'<p id="networkStatus" class="note">Connecting to room network…</p>';
+
+  $("startRoomBtn").onclick=startHostedNetworkGame;
+  $("startRoomBtn").disabled=true;
+  state.networkPlayers=[{
+    name:state.playerName,
+    playerId:state.playerId,
+    peerId:"local"
+  }];
+  renderNetworkLobby();
+
+  try{
+    const joinRoom=await loadTrystero();
+    net.room=joinRoom(
+      {
+        appId:"hollow-creek-hc1147-v3",
+        relayUrls:[
+          "wss://relay.damus.io",
+          "wss://nos.lol",
+          "wss://relay.primal.net"
+        ]
+      },
+      `hc-${state.mode}-${state.roomCode.toLowerCase()}`
+    );
+    configureRoomActions();
+    net.ready=true;
+
+    if(!state.isHost){
+      // Repeat hello briefly because peers may discover one another asynchronously.
+      [0,1200,3000,6000].forEach(delay=>setTimeout(()=>{
+        sendAction(net.hello,{
+          name:state.playerName,
+          playerId:state.playerId,
+          mode:state.mode
+        });
+      },delay));
+    }else{
+      broadcastLobby();
+    }
+    renderNetworkLobby();
+  }catch(error){
+    console.error(error);
+    showNetworkError("The room network could not be started. Host the HTML on HTTPS and reload the page.");
+  }
+}
+
+function assignNetworkRoles(){
+  const rolesById={};
+  if(state.mode==="duel"){
+    state.networkPlayers.forEach((p,i)=>{
+      rolesById[p.playerId]=i===0?"profiler":"killer";
+    });
+  }else{
+    const investigators=["profiler","forensic","detective","pathologist","lawyer","analyst"];
+    const shuffled=[...state.networkPlayers].sort(()=>Math.random()-.5);
+    const killerPlayer=shuffled[Math.floor(Math.random()*shuffled.length)];
+    shuffled.forEach((p,i)=>{
+      rolesById[p.playerId]=p.playerId===killerPlayer.playerId
+        ?"killer"
+        :investigators[i%investigators.length];
+    });
+  }
+  return rolesById;
+}
+
+function exportSharedState(){
+  return {
+    mode:state.mode,
+    playerCount:state.playerCount,
+    killerIndex:state.killerIndex,
+    suspects:state.suspects,
+    evidence:state.evidence,
+    profile:state.profile,
+    time:state.time,
+    processed:state.processed,
+    victims:state.victims,
+    falseLeadUsed:state.falseLeadUsed,
+    retestUsed:state.retestUsed,
+    autopsyUsed:state.autopsyUsed,
+    legalPrepared:state.legalPrepared,
+    analystUsed:state.analystUsed,
+    turn:state.turn,
+    roomCode:state.roomCode
+  };
+}
+
+function importSharedState(shared){
+  Object.assign(state,shared||{});
+}
+
+function startHostedNetworkGame(){
+  if(!state.isHost||!net.ready)return;
+  const required=state.mode==="duel"?2:state.playerCount;
+  if(state.networkPlayers.length<required){
+    showNetworkError(`Waiting for ${required-state.networkPlayers.length} more player(s).`);
+    return;
+  }
+
+  state.suspects=makeSuspects();
+  state.killerIndex=Math.floor(Math.random()*6);
+  state.evidence=evidenceTemplates.map((e,i)=>({
+    ...e,processed:false,result:null,false:false,
+    tilt:`${[-1.4,.7,-.8,1.1,-.4,.9][i]}deg`
+  }));
+  state.profile={};
+  state.processed=0;
+  state.victims=0;
+  state.falseLeadUsed=false;
+  state.retestUsed=false;
+  state.autopsyUsed=false;
+  state.legalPrepared=false;
+  state.analystUsed=false;
+  state.gameOver=false;
+  state.turn="bau";
+
+  const rolesById=assignNetworkRoles();
+  state.role=rolesById[state.playerId];
+
+  sendAction(net.start,{
+    gameState:exportSharedState(),
+    roles:rolesById
+  });
+  startNetworkGame();
+}
+
+function startNetworkGame(){
+  $("phaseBadge").textContent="Investigation active";
+  $("gameRoom").textContent=`ROOM ${state.roomCode}`;
+  configureBriefing();
+  renderAll();
+  show("gameScreen");
+  startTimer();
+  log("Online case opened. Connected devices are synchronized.",false);
+}
+
+function syncGame(){
+  if(!net.ready)return;
+  if(state.isHost){
+    sendAction(net.sync,{gameState:exportSharedState()});
+  }else{
+    // Guests send their proposed state to the host. The host then becomes authoritative.
+    sendAction(net.sync,{gameState:exportSharedState(),fromGuest:true});
+  }
+}
+
+
+function openLobby(){
+  state.playerCount=Number($("partyCount").value);
+  const action=$("partyAction").value;
+  state.roomCode=action==="join" ? ($("joinCode").value.trim().toUpperCase()||randomCode()) : randomCode();
+  $("roomCode").textContent=state.roomCode;
+  const base=$("displayName").value.trim()||"Player 1";
+  const players=Array.from({length:state.playerCount},(_,i)=>i===0?base:`Player ${i+1}`);
+  $("playerList").innerHTML=players.map((p,i)=>`<div class="player-row"><span>${p}</span><strong>${i===0?"HOST":"READY"}</strong></div>`).join("");
+  $("roleDistribution").innerHTML=roleDistributionText(state.playerCount);
+  $("startRoomBtn").onclick=()=>{state.role=partyRoleForHost(state.playerCount);startGame()};
+  show("lobbyScreen");
+}
+function roleDistributionText(n){
+  const list=n===3?["Profiler","Forensic Technician","Serial Killer"]:
+    n===4?["Profiler","Detective","Forensic Technician","Serial Killer"]:
+    n===5?["Profiler","Detective","Medical Examiner","Forensic Technician","Serial Killer"]:
+    ["Profiler","Detective","Medical Examiner","Forensic Technician","Analyst","Legal Counsel","Serial Killer",...(n>=9?["Accomplice"]:[])];
+  return `<p>Roles scale with player count:</p><ul>${list.map(x=>`<li>${x}</li>`).join("")}</ul><p>Additional players receive investigator variants with private information.</p>`;
+}
+function partyRoleForHost(n){
+  const pool=n<=3?["profiler","forensic","killer"]:["profiler","forensic","detective","pathologist","lawyer","analyst","killer"];
+  return randomItem(pool)
+}
+function makeSuspects(){
+  const out=[],seen=new Set();
+  while(out.length<6){
+    const p={};traits.forEach(t=>p[t.key]=randomItem(t.values));
+    const sig=JSON.stringify(p);if(seen.has(sig))continue;seen.add(sig);
+    out.push(p)
+  }
+  return out.map((p,i)=>({name:names[i],occupation:occupations[i],profile:p,hiddenTrait:randomItem(traits).key,interrogated:false,eliminated:false}))
+}
+function startGame(){
+  state.suspects=makeSuspects();state.killerIndex=Math.floor(Math.random()*6);
+  state.evidence=evidenceTemplates.map((e,i)=>({...e,processed:false,result:null,false:false,tilt:`${[-1.4,.7,-.8,1.1,-.4,.9][i]}deg`}));
+  state.profile={};state.processed=0;state.victims=0;state.falseLeadUsed=false;state.retestUsed=false;state.autopsyUsed=false;state.legalPrepared=false;state.analystUsed=false;state.gameOver=false;state.turn="bau";
+  $("phaseBadge").textContent="Investigation active";
+  $("gameRoom").textContent=state.mode==="party" ? `ROOM ${state.roomCode}` : state.mode==="duel" ? "2-PLAYER DUEL" : "SOLO CASE";
+  configureBriefing();renderAll();show("gameScreen");startTimer();log("Case HC-1147 opened. Roles distributed.");
+}
+function configureBriefing(){
+  if(state.mode==="duel"){
+    $("briefText").textContent="Players alternate secret turns. Pass the device after each action. The BAU may process, interrogate, or accuse. The killer may murder, plant evidence, or wait.";
+    $("roleName").textContent="Two-player asymmetric duel";$("roleDescription").textContent="Current active side is shown below.";$("objective").textContent="BAU wins by identifying the killer. Killer wins with two victims, a wrong accusation, or survival.";
+    $("duelStatus").style.display="grid";updateDuelStatus();
+  }else{
+    $("duelStatus").style.display="none";
+    const r=roles[state.role];$("roleName").textContent=r.name;$("roleDescription").textContent=r.desc;$("objective").textContent=r.goal;
+    $("roleBox").classList.toggle("killer",state.role==="killer");
+    $("briefText").textContent=state.mode==="solo" ? "One player faces an AI-controlled opponent." : "The investigation team contains one hidden infiltrator. Specialist roles control different parts of the case.";
+    if(state.role==="killer")$("objective").innerHTML+=`<br><br><strong>Your cover identity:</strong> ${state.suspects[state.killerIndex].name}`;
+  }
+}
+function updateDuelStatus(){
+  $("duelStatus").innerHTML=`
+    <div class="duel-side"><strong>BAU</strong>${state.turn==="bau"?"ACTIVE TURN":"Waiting"}<br>Evidence, interviews, accusation</div>
+    <div class="duel-side"><strong>KILLER</strong>${state.turn==="killer"?"ACTIVE TURN":"Waiting"}<br>Victims: ${state.victims}/2</div>`;
+}
+function startTimer(){
+  clearInterval(state.timerId);updateTimer();
+  state.timerId=setInterval(()=>{if(state.gameOver)return;state.time--;updateTimer();if(state.time<=0)endGame("The trail went cold",state.mode==="duel"||state.role==="killer"?"The killer survived the investigation window.":`The killer was ${state.suspects[state.killerIndex].name}.`)},1000)
+}
+function updateTimer(){const m=String(Math.floor(state.time/60)).padStart(2,"0"),s=String(state.time%60).padStart(2,"0");$("timer").textContent=`${m}:${s}`}
+function renderAll(){renderEvidence();renderSuspects();renderProfile();renderActions();$("processed").textContent=state.processed;if(state.mode==="duel")updateDuelStatus()}
+function renderEvidence(){
+  $("evidenceGrid").innerHTML=state.evidence.map((e,i)=>`
+    <article class="evidence" style="--tilt:${e.tilt}">
+      <div class="tag">EXHIBIT ${String.fromCharCode(65+i)} · ${e.processed?"PROCESSED":"SEALED"}</div>
+      <h4>${e.name}</h4><div>${e.description}</div>
+      <div class="result">${e.processed?`${traitLabel(e.trait)}: ${e.result}${((state.role==="killer"||state.mode==="duel")&&e.false)?" <span style='color:#9b1e26'>(PLANTED)</span>":""}`:"Awaiting laboratory processing"}</div>
+      <div class="actions"><button class="btn small primary" onclick="processEvidence(${i})" ${e.processed||!canBAUAct()?"disabled":""}>Process</button></div>
+    </article>`).join("")
+}
+function renderSuspects(){
+  $("suspectGrid").innerHTML=state.suspects.map((s,i)=>{const sc=score(s);return`
+    <article class="suspect ${s.eliminated?"eliminated":""}">
+      <h4>${s.name}</h4><div class="meta">${s.occupation}<br>${s.interrogated?"Interview complete":"One detail withheld"}</div>
+      <div class="pills"><span class="pill match">${sc.matches} matches</span><span class="pill contra">${sc.contradictions} contradictions</span><span class="pill unknown">${sc.unknown} unresolved</span></div>
+      <div class="actions">
+        <button class="btn small" onclick="interrogate(${i})" ${s.interrogated||s.eliminated||!canBAUAct()?"disabled":""}>Interrogate</button>
+        <button class="btn small amber" onclick="nominate(${i})" ${s.eliminated||!canBAUAct()?"disabled":""}>Nominate</button>
+      </div>
+    </article>`}).join("")
+}
+function renderProfile(){$("profileList").innerHTML=traits.map(t=>`<div class="profile-row"><span>${t.label}</span><strong>${state.profile[t.key]??"Unknown"}</strong></div>`).join("")}
+function canBAUAct(){return state.mode!=="duel"||state.turn==="bau"}
+function canKillerAct(){return state.mode==="duel"?state.turn==="killer":state.role==="killer"}
+function renderActions(){
+  const a=[];
+  if(state.mode==="duel"){
+    if(state.turn==="bau"){
+      a.push(`<button class="btn primary" onclick="processRandom()">Recommend next exhibit</button>`);
+      a.push(`<button class="btn" onclick="reviewTheory()">Review case theory</button>`);
+      a.push(`<button class="btn amber" onclick="endTurn()">End BAU turn</button>`);
+    }else{
+      a.push(`<button class="btn red" onclick="killVictim()">Claim victim</button>`);
+      a.push(`<button class="btn amber" onclick="plantFalseLead()">Plant false evidence</button>`);
+      a.push(`<button class="btn" onclick="killerWait()">Wait and observe</button>`);
+    }
+  }else if(state.role==="killer"){
+    a.push(`<button class="btn red" onclick="killVictim()">Claim victim</button>`);
+    a.push(`<button class="btn amber" onclick="plantFalseLead()">Plant false evidence</button>`);
+  }else{
+    a.push(`<button class="btn primary" onclick="processRandom()">Recommend next exhibit</button>`);
+    if(state.role==="forensic")a.push(`<button class="btn amber" onclick="retest()">Re-test evidence</button>`);
+    if(state.role==="pathologist")a.push(`<button class="btn amber" onclick="autopsy()">Run specialist autopsy</button>`);
+    if(state.role==="lawyer")a.push(`<button class="btn amber" onclick="prepareLegal()">Prepare legal challenge</button>`);
+    if(state.role==="analyst")a.push(`<button class="btn amber" onclick="analyst()">Run cross-comparison</button>`);
+    a.push(`<button class="btn" onclick="reviewTheory()">Review case theory</button>`);
+  }
+  $("roleActions").innerHTML=a.join("")
+}
+function endTurn(){state.turn=state.turn==="bau"?"killer":"bau";log(`Turn passed to ${state.turn==="bau"?"BAU":"Killer"}.`);renderAll();syncGame()}
+function processEvidence(i,auto=false){
+  if(!canBAUAct()&&!auto)return;const e=state.evidence[i];if(e.processed)return;
+  const truth=state.suspects[state.killerIndex].profile[e.trait];e.processed=true;e.result=e.false?e.result:truth;state.profile[e.trait]=e.result;state.processed++;state.time=Math.max(0,state.time-25);
+  log(`${e.name} processed: ${traitLabel(e.trait)} = ${e.result}.`);renderAll();syncGame();if(state.mode==="duel"&&!auto)endTurn()
+}
+function processRandom(){const a=state.evidence.map((e,i)=>({e,i})).filter(x=>!x.e.processed);if(a.length)processEvidence(randomItem(a).i)}
+function interrogate(i){
+  if(!canBAUAct())return;const s=state.suspects[i];if(s.interrogated)return;s.interrogated=true;state.time=Math.max(0,state.time-20);
+  const t=traits.find(x=>x.key===s.hiddenTrait);log(`${s.name} revealed: ${t.label} = ${s.profile[s.hiddenTrait]}.`);
+  modal(`Interview: ${s.name}`,`<p><strong>Revealed detail:</strong> ${t.label} — ${s.profile[s.hiddenTrait]}</p>`,[{label:"Close"}]);renderAll();syncGame();if(state.mode==="duel")endTurn()
+}
+function nominate(i){
+  const s=state.suspects[i],sc=score(s);
+  modal(`Nominate ${s.name}`,`<p>${sc.matches} matches · ${sc.contradictions} contradictions · ${sc.unknown} unresolved.</p>`,[
+    {label:"Cancel"},
+    {label:"Accuse",cls:"red",action:()=>accuse(i)},
+    {label:"Clear",cls:"amber",action:()=>clearSuspect(i)}
+  ])
+}
+function accuse(i){if(i===state.killerIndex)endGame("UnSub identified",`${state.suspects[i].name} was the Hollow Creek killer.`);else endGame("Wrong accusation",`${state.suspects[i].name} was innocent. The actual killer was ${state.suspects[state.killerIndex].name}.`)}
+function clearSuspect(i){state.suspects[i].eliminated=true;log(`${state.suspects[i].name} cleared from roster.`);if(i===state.killerIndex)endGame("Critical failure","The real killer was cleared from the suspect pool.");else{renderAll();if(state.mode==="duel")endTurn()}}
+function plantFalseLead(){
+  if(!canKillerAct()||state.falseLeadUsed)return;const a=state.evidence.map((e,i)=>({e,i})).filter(x=>!x.e.processed);if(!a.length)return;
+  modal("Plant false evidence",`<select id="falseSelect" style="width:100%;padding:10px">${a.map(x=>`<option value="${x.i}">${x.e.name}</option>`).join("")}</select>`,[
+    {label:"Cancel"},{label:"Plant",cls:"red",action:()=>{const i=Number($("falseSelect").value),e=state.evidence[i],truth=state.suspects[state.killerIndex].profile[e.trait];e.result=randomItem(traits.find(t=>t.key===e.trait).values.filter(v=>v!==truth));e.false=true;state.falseLeadUsed=true;log("A sealed exhibit has been compromised.");renderAll();syncGame();if(state.mode==="duel")endTurn()}}
+  ])
+}
+function killVictim(){
+  if(!canKillerAct())return;state.victims++;log(`A new victim was found. Victims: ${state.victims}/2.`);
+  const a=state.evidence.map((e,i)=>({e,i})).filter(x=>!x.e.processed&&!x.e.false);if(a.length)processEvidence(randomItem(a).i,true);
+  if(state.victims>=2)endGame("Night completed","The killer claimed two victims before being identified.");else if(state.mode==="duel")endTurn();syncGame()
+}
+function killerWait(){log("The killer chose not to strike.");state.time=Math.max(0,state.time-20);endTurn()}
+function retest(){
+  if(state.retestUsed)return;const a=state.evidence.map((e,i)=>({e,i})).filter(x=>x.e.processed);if(!a.length)return;
+  modal("Re-test evidence",`<select id="retestSelect" style="width:100%;padding:10px">${a.map(x=>`<option value="${x.i}">${x.e.name}</option>`).join("")}</select>`,[
+    {label:"Cancel"},{label:"Run",cls:"amber",action:()=>{const e=state.evidence[Number($("retestSelect").value)];state.retestUsed=true;log(e.false?`${e.name}: contamination detected.`:`${e.name}: no contamination detected.`);renderAll()}}
+  ])
+}
+function autopsy(){if(state.autopsyUsed)return;const a=traits.filter(t=>state.profile[t.key]===undefined);if(!a.length)return;const t=randomItem(a);state.profile[t.key]=state.suspects[state.killerIndex].profile[t.key];state.autopsyUsed=true;log(`Autopsy finding: ${t.label} = ${state.profile[t.key]}.`);renderAll()}
+function prepareLegal(){state.legalPrepared=true;log("Legal challenge prepared against the next weak removal.");renderAll()}
+function analyst(){if(state.analystUsed)return;state.analystUsed=true;const ranked=state.suspects.map((s,i)=>({i,...score(s)})).filter(x=>!state.suspects[x.i].eliminated).sort((a,b)=>a.contradictions-b.contradictions||b.matches-a.matches);const best=ranked.slice(0,2).map(x=>state.suspects[x.i].name).join(" and ");log(`Cross-comparison highlights ${best}.`);modal("Analyst result",`<p>Strongest current profiles:</p><p><strong>${best}</strong></p>`,[{label:"Close"}]);renderAll()}
+function reviewTheory(){const ranked=state.suspects.map(s=>({name:s.name,...score(s),eliminated:s.eliminated})).filter(x=>!x.eliminated).sort((a,b)=>a.contradictions-b.contradictions||b.matches-a.matches);modal("Current case theory",`<ol>${ranked.map(x=>`<li><strong>${x.name}</strong> — ${x.matches} matches, ${x.contradictions} contradictions</li>`).join("")}</ol><p>One exhibit may be false.</p>`,[{label:"Close"}])}
+function score(s){let matches=0,contradictions=0,unknown=0;traits.forEach(t=>{if(state.profile[t.key]===undefined)unknown++;else if(state.profile[t.key]===s.profile[t.key])matches++;else contradictions++});return{matches,contradictions,unknown}}
+function traitLabel(k){return traits.find(t=>t.key===k).label}
+function log(msg,broadcast=true){if(broadcast&&net.ready)sendAction(net.log,{message:msg});const d=document.createElement("div");d.className="log-entry";d.innerHTML=`<strong>${new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}</strong><br>${msg}`;$("fieldLog").prepend(d)}
+function modal(title,body,actions){$("modalTitle").textContent=title;$("modalBody").innerHTML=body;$("modalActions").innerHTML="";actions.forEach(a=>{const b=document.createElement("button");b.className=`btn ${a.cls||""}`;b.textContent=a.label;b.onclick=()=>{$("modal").classList.remove("active");if(a.action)a.action()};$("modalActions").appendChild(b)});$("modal").classList.add("active")}
+function endGame(title,text,broadcast=true){if(broadcast&&net.ready)sendAction(net.finish,{title,text});state.gameOver=true;clearInterval(state.timerId);$("phaseBadge").textContent="Case resolved";$("resultTitle").textContent=title;$("resultText").textContent=text;show("resultScreen")}
+updateTimer();
+
+if(location.protocol==="file:"){
+  window.addEventListener("DOMContentLoaded",()=>{
+    setTimeout(()=>{
+      modal(
+        "Online rooms need HTTPS",
+        "<p>The game itself can open locally, but mobile browsers usually block reliable cross-device WebRTC from a downloaded <strong>file://</strong> page.</p><p>Upload this one HTML file to Netlify Drop, GitHub Pages, Vercel, or another HTTPS host. Then open the same URL on every device.</p>",
+        [{label:"Continue locally"}]
+      );
+    },350);
+  });
+}
+
+</script>
+</body>
+</html>
